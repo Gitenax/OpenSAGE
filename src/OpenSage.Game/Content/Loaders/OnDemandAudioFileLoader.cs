@@ -30,9 +30,13 @@ namespace OpenSage.Content.Loaders
                     }
                 }
             }
-            else // music tracks
+            else if(Path.GetExtension(key) == "mp3") // Music tracks.
             {
                 entry = context.FileSystem.GetFile(Path.Combine(@"Data\Audio\Tracks", key));
+            }
+            else
+            {
+                entry = context.FileSystem.GetFile(Path.Combine($@"Data\Audio\Speech\{context.Language}", key));
             }
 
             if (entry == null)

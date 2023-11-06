@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using OpenSage.Eva;
 using OpenSage.Graphics.Cameras;
 using OpenSage.IO;
 using OpenSage.Logic.Object;
+using OpenSage.Mathematics;
 using SharpAudio;
 using SharpAudio.Codec;
 using SharpAudio.Codec.Wave;
@@ -79,6 +81,9 @@ namespace OpenSage.Audio
 
             _mixers[AudioVolumeSlider.Voice] = _engine.CreateSubmixer();
             _mixers[AudioVolumeSlider.Voice].Volume = (float) _settings.DefaultVoiceVolume;
+
+            _mixers[AudioVolumeSlider.Speech] = _engine.CreateSubmixer();
+            _mixers[AudioVolumeSlider.Speech].Volume = (float) _settings.DefaultSpeechVolume;
 
             _mixers[AudioVolumeSlider.Movie] = _engine.CreateSubmixer();
             _mixers[AudioVolumeSlider.Movie].Volume = (float) _settings.DefaultMovieVolume;
@@ -161,6 +166,39 @@ namespace OpenSage.Audio
             PlayAudioEvent(audioEvent);
         }
 
+        public void PlayEvaEvent(string eventName, string side)
+        {
+            var evaEvent = Game.AssetStore.EvaEvents.GetByName(eventName);
+
+            if (evaEvent == null)
+            {
+                logger.Warn($"Missing EvaEvent: {eventName}");
+                return;
+            }
+
+            var evaSideSound = evaEvent.SideSounds.Find(x => x.Side == side);
+
+            if (evaSideSound == null)
+            {
+                logger.Warn($"Missing EvaSideEvent: {side} for EvaEvent: {eventName}");
+                return;
+            }
+
+            var dialogEvent = Game.AssetStore.DialogEvents.GetByName(evaSideSound.Sound);
+            var fileSystemEntry = dialogEvent.File.Value?.Entry;
+
+            if (fileSystemEntry == null)
+            {
+                logger.Warn($"Missing FileSystemEntry for EvaEvent: {eventName}");
+                return;
+            }
+
+            var source = GetSound(fileSystemEntry, dialogEvent.SubmixSlider);
+            source.Volume = (float)dialogEvent.Volume;
+
+            source.Play();
+        }
+
         public void DisposeSource(AudioSource source)
         {
             if (source == null)
@@ -177,18 +215,11 @@ namespace OpenSage.Audio
 
         private bool ValidateAudioEvent(BaseAudioEventInfo baseAudioEvent)
         {
-            if (baseAudioEvent == null)
+            return baseAudioEvent switch
             {
-                return false;
-            }
-
-            if (!(baseAudioEvent is AudioEvent))
-            {
-                // TODO
-                return false;
-            }
-
-            return true;
+                AudioEvent => true,
+                _ => false
+            };
         }
 
         private AudioSource PlayAudioEventBase(BaseAudioEventInfo baseAudioEvent, bool looping = false)

@@ -71,7 +71,7 @@ namespace OpenSage.Logic.Object
                     _currentDoorState = DoorState.Open;
 
                     GetDoorConditionFlags(out var doorOpening, out var doorWaitingOpen, out var _);
-                   
+
                     _gameObject.ModelConditionFlags.Set(doorOpening, false);
                     _gameObject.ModelConditionFlags.Set(doorWaitingOpen, true);
                     MoveProducedObjectOut();
@@ -112,8 +112,27 @@ namespace OpenSage.Logic.Object
                     }
                     else if (front.Type == ProductionJobType.Upgrade)
                     {
+                        var researchSound = front.UpgradeDefinition.ResearchSound;
                         front.UpgradeDefinition.GrantUpgrade(_gameObject);
                         _productionQueue.RemoveAt(0);
+
+                        // Eva.
+                        if (!string.IsNullOrEmpty(researchSound))
+                        {
+                            context.GameContext.Game.Audio.PlayAudioEvent(researchSound);
+                        }
+                        else
+                        {
+                            // TODO: Different side names in game files and this project.
+                            string sideConvert = context.GameObject.Owner.Side switch
+                            {
+                                "FactionChina" => "China",
+                                "FactionGLA" => "GLA",
+                                "FactionUSA" => "America",
+                            };
+
+                            context.GameContext.Game.Audio.PlayEvaEvent("UpgradeComplete", sideConvert);
+                        }
                     }
                 }
             }
@@ -518,7 +537,7 @@ namespace OpenSage.Logic.Object
     }
 
     /// <summary>
-    /// Required on an object that uses PublicTimer code for any SpecialPower and/or required for 
+    /// Required on an object that uses PublicTimer code for any SpecialPower and/or required for
     /// units/structures with object upgrades.
     /// </summary>
     public sealed class ProductionUpdateModuleData : UpdateModuleData

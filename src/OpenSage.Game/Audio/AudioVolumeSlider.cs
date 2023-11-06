@@ -1,4 +1,5 @@
-﻿using OpenSage.Data.Ini;
+﻿using System;
+using OpenSage.Data.Ini;
 
 namespace OpenSage.Audio
 {
@@ -19,6 +20,9 @@ namespace OpenSage.Audio
 
         [IniEnum("MOVIE")]
         Movie,
+
+        [IniEnum("SPEECH"), AddedIn(SageGame.CncGenerals)]
+        Speech,
 
         [IniEnum("None"), AddedIn(SageGame.Bfme)]
         None,

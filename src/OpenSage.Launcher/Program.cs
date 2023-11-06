@@ -32,6 +32,9 @@ namespace OpenSage.Launcher
             [Option('m', "map", Required = false, HelpText = "Immediately starts a new skirmish with default settings in the specified map. The map file must be specified with the full path.")]
             public string Map { get; set; }
 
+            [Option("multiplayer", Required = false, HelpText = "Game is Multiplayer mode.")]
+            public bool Multiplayer { get; set; }
+
             [Option("novsync", Default = false, Required = false, HelpText = "Disable vsync.")]
             public bool DisableVsync { get; set; }
 
@@ -182,7 +185,7 @@ namespace OpenSage.Launcher
                             logger.Warn("Could not find MapCache entry for map " + opts.Map);
                             game.ShowMainMenu();
                         }
-                        else if (mapCache.IsMultiplayer)
+                        else if (mapCache.IsMultiplayer || opts.Multiplayer)
                         {
                             var pSettings = new PlayerSetting[]
                             {

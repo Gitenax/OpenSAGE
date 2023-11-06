@@ -8,6 +8,11 @@ namespace OpenSage.Audio
 {
     public abstract class BaseSingleSound : BaseAudioEventInfo
     {
+        protected BaseSingleSound()
+        {
+            SetSubmixSlider();
+        }
+
         internal static readonly IniParseTable<BaseSingleSound> FieldParseTable = new IniParseTable<BaseSingleSound>
         {
             { "Volume", (parser, x) => x.Volume = parser.ParsePercentage() },
@@ -94,5 +99,18 @@ namespace OpenSage.Audio
         public FloatRange? PerFilePitchShift { get; private set; }
 
         public List<VolumeSliderMultiplier> VolumeSliderMultipliers { get; private set; } = new List<VolumeSliderMultiplier>();
+
+        private void SetSubmixSlider()
+        {
+            SubmixSlider = this switch
+            {
+                AudioEvent => AudioVolumeSlider.SoundFX,
+                MusicTrack => AudioVolumeSlider.Music,
+                DialogEvent => AudioVolumeSlider.Speech,
+                AmbientStream => AudioVolumeSlider.Ambient,
+                StreamedSound => AudioVolumeSlider.Voice,
+                _ => AudioVolumeSlider.None
+            };
+        }
     }
 }
